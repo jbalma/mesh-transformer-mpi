@@ -1,0 +1,32 @@
+We adjust tensorflow/configure.py
+
+When you see this:
+./tensorflow/tensorflow/contrib/mpi/BUILD:60:1: undeclared inc_mgr':
+this rule is missing dependency declarations for the following files included by 'tensorflow/contrib/mpi/mpi_rendezvous_mgr.cc
+  'third_party/mpi/cray_version.h'
+  'third_party/mpi/mpio.h'
+  'third_party/mpi/mpicxx.h'
+In file included from ./tensorflow/core/platform/default/logging.h:24:0,
+                 from ./tensorflow/core/platform/logging.h:25,
+                 from ./tensorflow/contrib/mpi/mpi_utils.h:25,
+                 from ./tensorflow/contrib/mpi/mpi_rendezvous_mgr.h:34,
+                 from tensorflow/contrib/mpi/mpi_rendezvous_mgr.cc:18:
+
+
+Open the file: tensorflow/bazel-tensorflow/third_party/mpi_collectives/BUILD
+And add the 3 missing *.h to cc_library hdrs:
+cc_library(
+    name = "mpi",
+    srcs = select({
+        "//tensorflow:darwin": ["libmpi.dylib"],
+        "//conditions:default": ["libmpi.so"],
+    }),
+    hdrs = [
+        "mpi.h",
+        "cray_version.h",
+        "mpiio.h",
+        "mpicxx.h",
+        "mpi_portable_platform",
+    ],
+)
+

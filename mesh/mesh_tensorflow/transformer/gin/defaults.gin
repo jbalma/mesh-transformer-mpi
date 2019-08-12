@@ -1,0 +1,65 @@
+# -*-Python-*-
+
+import mesh_tensorflow.optimize
+import mesh_tensorflow.transformer.transformer_layers
+
+# for Unitransformer models (e.g. language-model)
+transformer.make_layer_stack.layers = [
+    @mesh_tensorflow.transformer.transformer_layers.SelfAttention,
+    @mesh_tensorflow.transformer.transformer_layers.DenseReluDense,
+]
+
+# for Bitransformer models (two-stack sequence-to-sequence models)
+encoder/transformer.make_layer_stack.layers = [
+    @mesh_tensorflow.transformer.transformer_layers.SelfAttention,
+    @mesh_tensorflow.transformer.transformer_layers.DenseReluDense,
+]
+decoder/transformer.make_layer_stack.layers = [
+    @mesh_tensorflow.transformer.transformer_layers.SelfAttention,
+    @mesh_tensorflow.transformer.transformer_layers.EncDecAttention,
+    @mesh_tensorflow.transformer.transformer_layers.DenseReluDense,
+]
+
+Unitransformer.shared_embedding_and_softmax_weights = True
+
+# Model sizes
+num_layers = 6
+d_model = 1024
+d_ff = 4096
+num_heads = 8
+d_kv = 128
+
+transformer.make_layer_stack.num_layers = %num_layers
+Unitransformer.d_model = %d_model
+DenseReluDense.hidden_size = %d_ff
+SelfAttention.num_heads = %num_heads
+SelfAttention.key_value_size = %d_kv
+
+# dropout
+dropout_rate = 0.1
+DenseReluDense.dropout_rate = %dropout_rate
+SelfAttention.dropout_rate = %dropout_rate
+LocalSelfAttention.dropout_rate = %dropout_rate
+LayerStack.dropout_rate = %dropout_rate
+
+# label smoothing by default for Bitransofrmer models (but not language models)
+decoder/Unitransformer.label_smoothing = 0.1
+
+sequence_length = 512
+# the sequence length for this run
+utils.run.sequence_length = %sequence_length
+# the maximum sequence length (changing breaks checkpoint compatibility)
+Unitransformer.max_length = %sequence_length
+
+# Optimization
+utils.run.optimizer = @optimize.AdafactorOptimizer
+
+# Single processor (unless overridden)
+utils.run.mesh_shape = ""
+
+# The following layout rules have no effect unless the names "model" and/or
+# "batch" are in utils.run.mesh_shape .
+utils.run.layout_rules = "batch:batch,d_ff:model,heads:model,vocab:model"
+
+# During training, serialize large batches to save memory.
+utils.serialize_num_microbatches.tokens_per_microbatch_per_replica = 2048
