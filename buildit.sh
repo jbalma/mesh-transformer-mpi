@@ -27,8 +27,8 @@ echo cuda home: $CUDA_HOME
 echo using gcc from: 
 which gcc 
 
-./configure --workspace=tensorflow/
-#./configure 
+#./configure --workspace=tensorflow/
+./configure 
 
 
 
