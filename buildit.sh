@@ -3,6 +3,8 @@ source ./env/setup_env_cuda10.sh
 source ./env/env_python3.sh
 source ./env/setup_bazel_env.sh
 
+
+
 module list
 #Bazel might need to use a temp directory instead of the default ~/.cache/bazel
 export TEST_TMPDIR=${PWD}/tmp/bazelstuff
@@ -12,7 +14,7 @@ export MPI_HOME=${CRAY_MPICH_BASEDIR}/mpich-gnu/8.2
 
 git clone https://github.com/tensorflow/tensorflow.git
 cd tensorflow
-git checkout r1.13
+git checkout r1.15
 
 bazel shutdown
 bazel clean
@@ -25,8 +27,8 @@ echo cuda home: $CUDA_HOME
 echo using gcc from: 
 which gcc 
 
-#./configure --workspace=tensorflow/
-./configure 
+./configure --workspace=tensorflow/
+#./configure 
 
 
 
